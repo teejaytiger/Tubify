@@ -5,8 +5,8 @@ playlists:
 pl_similarity: .9 # threshold for accepting a playlist name, enter 1 for perfect matches only
 show_playlists: true
 # Be careful with the following settings
-download: false # this will cause tubify to use youtube-dl to download songs. You're not supposed to do this!
+download: false
 youtube_dl_path: 'C:\Users\youtube-dl.exe'
-output_path: 'C:\Users\me\music' # where downloads are stored
-playlist_folders: true # true: use folders to split playlists, false: download all to same location
-number_tracks: true # true: add a number to the beginning of the track title
+output_path: 'C:\Users\me\music'
+playlist_folders: true
+number_tracks: true
