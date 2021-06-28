@@ -51,13 +51,14 @@ def get_playlists(username):
     playlists = sp.user_playlists(username)
     while playlists:
         for i, playlist in enumerate(playlists['items']):
+            if s.show_playlists: print (playlist['name'])
             ytdlpl = []
             # determine if the playlist is specified in the config file
             similarity = []
             for pl in s.playlists:
                 similarity.append(SequenceMatcher(None, pl, playlist['name']).ratio())
             # only grab playlists in the config file if they're 90% similar or higher
-            if max(similarity) > .90:
+            if (max(similarity) >= s.pl_similarity) and (not s.show_playlists):
                 print("%4d %s" % (i + 1 + playlists['offset'],  playlist['name']))
                 pluri = playlist['uri'].split(":")[2]
                 tracks = get_playlist_tracks(username, pluri)
@@ -80,63 +81,65 @@ def get_playlists(username):
 tracks, uris, folder_titles = get_playlists(s.uname)
 
 # create folders to store playlist items and download music
-for i in range(len(folder_titles)):
-    title = "".join([c for c in folder_titles[i] if c.isalpha() or c.isdigit() or c==' ']).rstrip()
-    # create the music folder path
+if not s.show_playlists:
+    for i in range(len(folder_titles)):
+        title = "".join([c for c in folder_titles[i] if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+        # create the music folder path
 
-    # case for named playlist folders
-    if s.playlist_folders:
-        p = os.path.join(os.path.normpath(s.output_path), title)
-        p3 = title
-        p2 = os.path.join(p, p3+".ytdl")
-        if not os.path.isdir(p):
-            os.mkdir(p)
+        # case for named playlist folders
+        if s.playlist_folders:
+            p = os.path.join(os.path.normpath(s.output_path), title)
+            p3 = title
+            p2 = os.path.join(p, p3+".ytdl")
+            if not os.path.isdir(p):
+                os.mkdir(p)
 
-    # case for aggregated download
-    else:
-        p = os.path.normpath(s.output_path)
-        p3 = "playlist"
-        p2 = os.path.join(p, p3+".ytdl")
-        if not os.path.isdir(p):
-            os.mkdir(p)
+        # case for aggregated download
+        else:
+            p = os.path.normpath(s.output_path)
+            p3 = "playlist"
+            p2 = os.path.join(p, p3+".ytdl")
+            if not os.path.isdir(p):
+                os.mkdir(p)
 
-    # append untracked songs
-    with open(p2, 'a+') as f:
-        f.seek(0)
-        songs = [i.rstrip() for i in f.readlines()]
-        for k, uri in enumerate(uris[i]):
-            if not uri in songs:
-                f.write('%s\n' % uri)
+        # append untracked songs
+        with open(p2, 'a+') as f:
+            f.seek(0)
+            songs = [i.rstrip() for i in f.readlines()]
+            for k, uri in enumerate(uris[i]):
+                if not uri in songs:
+                    f.write('%s\n' % uri)
 
-    # download!
-    # case for numbering tracks to preserve order
-    if s.number_tracks:
-        r = subprocess.Popen(
-            [
-                "youtube-dl.exe",
-                "-ciw",
-                "--download-archive", os.path.join(p, p3+".txt"), 
-                "--batch-file", p2, 
-                "--restrict-filenames", 
-                "--format", "140", 
-                "-o", p+"//"+"%(autonumber)s-%(title)s.%(ext)s"
-            ], 
-            stdout=subprocess.PIPE)
-    # case for not numbering tracks
-    else:
-        r = subprocess.Popen(
-            [
-                "youtube-dl.exe",
-                "-ciw",
-                "--download-archive", os.path.join(p, p3+".txt"),
-                "--batch-file", p2, 
-                "--restrict-filenames", 
-                "--format", "140", 
-                "-o", p+"//"+"%(title)s.%(ext)s"
-            ], 
-            stdout=subprocess.PIPE)
-            
-    for line in iter(r.stdout.readline, b''):
-        print(line.decode('cp1252'), end="\r", file=sys.stdout, flush=True)
+        # download!
+        # case for numbering tracks to preserve order
+        if s.download:
+            if s.number_tracks:
+                r = subprocess.Popen(
+                    [
+                        s.youtube_dl_path,
+                        "-ciw",
+                        "--download-archive", os.path.join(p, p3+".txt"), 
+                        "--batch-file", p2, 
+                        "--restrict-filenames", 
+                        "--format", "140", 
+                        "-o", p+"//"+"%(autonumber)s-%(title)s.%(ext)s"
+                    ], 
+                    stdout=subprocess.PIPE)
+            # case for not numbering tracks
+            else:
+                r = subprocess.Popen(
+                    [
+                        s.youtube_dl_path,
+                        "-ciw",
+                        "--download-archive", os.path.join(p, p3+".txt"),
+                        "--batch-file", p2, 
+                        "--restrict-filenames", 
+                        "--format", "140", 
+                        "-o", p+"//"+"%(title)s.%(ext)s"
+                    ], 
+                    stdout=subprocess.PIPE)
+
+            for line in iter(r.stdout.readline, b''):
+                print(line.decode('cp1252'), end="\r", file=sys.stdout, flush=True)
     print ("[DONE]\n")
     
