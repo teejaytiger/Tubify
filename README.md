@@ -11,10 +11,16 @@ If you encounter issues, consult the [official installation instructions for you
 ### Linux
 Install youtube-dl with `sudo apt-get install youtube-dl` and modify `youtube_dl_path` in the config.yaml file to reflect the path to the executable.
 
+run `python -m pip install requirements.txt`  
+This will install all the prerequisites.
+
 > you can also follow [the official instructions](https://ytdl-org.github.io/youtube-dl/download.html)
 
 ### OSX
 Follow the instructions at [the official youtube-dl documentation](https://ytdl-org.github.io/youtube-dl/download.html)
+
+run `python -m pip install requirements.txt`  
+This will install all the prerequisites.
 
 ## Installation continued (All OS)
 
