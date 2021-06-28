@@ -3,12 +3,12 @@ output_path: 'C:\Users\Intel\Documents\music' # where the music is downloaded to
 playlist_folders: true # true: use folders to split playlists, false: download all to same location
 number_tracks: true # true: add a number to the beginning of the track title
 playlists:
-#  - 'Daði Freyr (songs I like)'
+  - 'Daði Freyr (songs I like)'
 #  - 'You send them this'
   - 'Karaoke'
 #  - 'I want you to cry'
 #  - 'finds (unsorted)'
 #  - 'keeping composure'
 #  - 'High School'
-  - "Discover Weekly"
+#  - "Discover Weekly"
 youtube_dl_path: 'C:\Users\Intel\Documents\Tubify\youtube-dl\youtube_dl'

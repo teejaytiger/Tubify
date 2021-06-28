@@ -1,4 +1,4 @@
-import os
+import os, sys
 import spotipy
 import yaml
 from spotipy.oauth2 import SpotifyOAuth
@@ -47,11 +47,11 @@ def get_playlist_tracks(username,playlist_id):
 def get_playlists(username):
     result = []
     ytdl = []
-    ytdlpl = []
     folder_titles = []
     playlists = sp.user_playlists(username)
     while playlists:
         for i, playlist in enumerate(playlists['items']):
+            ytdlpl = []
             # determine if the playlist is specified in the config file
             similarity = []
             for pl in s.playlists:
@@ -82,15 +82,61 @@ tracks, uris, folder_titles = get_playlists(s.uname)
 # create folders to store playlist items and download music
 for i in range(len(folder_titles)):
     title = "".join([c for c in folder_titles[i] if c.isalpha() or c.isdigit() or c==' ']).rstrip()
-    p = os.path.join(os.path.normpath(s.output_path), title)
-    os.mkdir(p)
-    p2 = os.path.join(p, title+".ytdl")
-    with open(p2, 'w') as f:
-        for listitem in uris[i]:
-            f.write('%s\n' % listitem)
+    # create the music folder path
+
+    # case for named playlist folders
+    if s.playlist_folders:
+        p = os.path.join(os.path.normpath(s.output_path), title)
+        p3 = title
+        p2 = os.path.join(p, p3+".ytdl")
+        if not os.path.isdir(p):
+            os.mkdir(p)
+
+    # case for aggregated download
+    else:
+        p = os.path.normpath(s.output_path)
+        p3 = "playlist"
+        p2 = os.path.join(p, p3+".ytdl")
+        if not os.path.isdir(p):
+            os.mkdir(p)
+
+    # append untracked songs
+    with open(p2, 'a+') as f:
+        f.seek(0)
+        songs = [i.rstrip() for i in f.readlines()]
+        for k, uri in enumerate(uris[i]):
+            if not uri in songs:
+                f.write('%s\n' % uri)
+
     # download!
-    r = subprocess.Popen(["youtube-dl.exe","--batch-file", p2, "--format", "140", "-o", s.output_path+"//"+title+"//"+"%(title)s.%(ext)s"], stdout=subprocess.PIPE)
-    #r = subprocess.Popen(["youtube-dl.exe","--batch-file", p2, "-f", "140"], stdout=subprocess.PIPE)
-    for i in r.stdout: 
-        print(i.rstrip().decode('UTF-8'))
+    # case for numbering tracks to preserve order
+    if s.number_tracks:
+        r = subprocess.Popen(
+            [
+                "youtube-dl.exe",
+                "-ciw",
+                "--download-archive", os.path.join(p, p3+".txt"), 
+                "--batch-file", p2, 
+                "--restrict-filenames", 
+                "--format", "140", 
+                "-o", p+"//"+"%(autonumber)s-%(title)s.%(ext)s"
+            ], 
+            stdout=subprocess.PIPE)
+    # case for not numbering tracks
+    else:
+        r = subprocess.Popen(
+            [
+                "youtube-dl.exe",
+                "-ciw",
+                "--download-archive", os.path.join(p, p3+".txt"),
+                "--batch-file", p2, 
+                "--restrict-filenames", 
+                "--format", "140", 
+                "-o", p+"//"+"%(title)s.%(ext)s"
+            ], 
+            stdout=subprocess.PIPE)
+            
+    for line in iter(r.stdout.readline, b''):
+        print(line.decode('cp1252'), end="\r", file=sys.stdout, flush=True)
+    print ("[DONE]\n")
     
