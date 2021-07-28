@@ -10,3 +10,6 @@ youtube_dl_path: 'C:\Users\youtube-dl.exe'
 output_path: 'C:\Users\me\music'
 playlist_folders: true
 number_tracks: true
+# NOTE: Convert to mp3 requires ffmpeg is installed on your system! Visit http://ffmpeg.org/ for more info
+# Windows only for now!
+convert_to_mp3 : true

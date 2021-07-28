@@ -1,4 +1,4 @@
-import os, sys
+import os, subprocess, sys
 import spotipy
 import yaml
 from spotipy.oauth2 import SpotifyOAuth
@@ -142,4 +142,8 @@ if not s.show_playlists:
             for line in iter(r.stdout.readline, b''):
                 print(line.decode('cp1252'), end="\r", file=sys.stdout, flush=True)
     print ("[DONE]\n")
-    
+
+if s.convert_to_mp3:
+    print("[POST] Converting files to mp3. See dirname/dirname for converted files.")
+    p = subprocess.Popen('powershell.exe -ExecutionPolicy RemoteSigned -file "conversion.ps1"', stdout=sys.stdout)
+    p.communicate()

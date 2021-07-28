@@ -1,0 +1,1 @@
+Get-ChildItem *.m4a -recurse | % { ffmpeg.exe -i $_.FullName -acodec libmp3lame -ac 2 -q:a 2 ($_.DirectoryName+"\"+$_.DirectoryName+"\"+$_.BaseName+".mp3") }
