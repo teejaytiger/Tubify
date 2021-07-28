@@ -1,10 +1,12 @@
+from genericpath import exists
 import os, subprocess, sys
+from posixpath import splitext
 import spotipy
 import yaml
 from spotipy.oauth2 import SpotifyOAuth
 from youtube_search import YoutubeSearch
 from difflib import SequenceMatcher
-import subprocess
+from subprocess import Popen, PIPE
 
 
 ## configuration 
@@ -22,7 +24,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
     client_id="d18509bdbb4d498e89dc2f56a6b7e8e6",
     client_secret="84db0e51115e483398e237961a12bbbb",
     redirect_uri="https://spotify.com",
-    scope="playlist-read-private")
+    scope="playlist-read-private playlist-read-collaborative")
     )
 
 # capture the top result for a song title
@@ -48,6 +50,7 @@ def get_playlists(username):
     result = []
     ytdl = []
     folder_titles = []
+    #playlists = sp.user_playlists(username)
     playlists = sp.user_playlists(username)
     while playlists:
         for i, playlist in enumerate(playlists['items']):
@@ -64,6 +67,8 @@ def get_playlists(username):
                 tracks = get_playlist_tracks(username, pluri)
                 for track in tracks:
                     title = track["track"]["album"]["artists"][0]["name"]+" - "+track["track"]["name"]
+                    if s.assert_music:
+                        title += " "+s.assert_music_string
                     yturi = get_youtube_uri(title)
                     result.append([track, yturi])
                     if yturi:
@@ -145,5 +150,31 @@ if not s.show_playlists:
 
 if s.convert_to_mp3:
     print("[POST] Converting files to mp3. See dirname/dirname for converted files.")
-    p = subprocess.Popen('powershell.exe -ExecutionPolicy RemoteSigned -file "conversion.ps1"', stdout=sys.stdout)
-    p.communicate()
+    count = 0
+    cmds = []
+    convert_p = os.path.join(s.output_path,"CONVERTED")
+    if not os.path.exists(convert_p): os.mkdir(convert_p)
+    for subdir, dirs, files in os.walk(s.output_path):
+        for d in dirs[1:]:
+            p = os.path.join(convert_p, d)
+            if not os.path.exists(p): os.mkdir(p)
+        for file in files:
+            parent_folder = os.path.split(subdir)[1]
+            bname, ext = os.path.splitext(file)
+            if "m4a" in ext:
+                fname = bname+".mp3"
+                cmds.append( [
+                    s.ffmpeg_install_location,
+                    '-i', "\""+os.path.join(subdir, file)+"\"",
+                    '-acodec', 'libmp3lame',
+                    '-ac', '2',
+                    '-q:a', '2',
+                    "\""+os.path.join(convert_p, parent_folder, fname)+"\""] )
+                count+=1
+    i = 1
+    for command in cmds:
+        print("converting {0}/{1} - {2}".format(i, count, os.path.split(command[2])[1]))
+        #print(" ".join(command)) # debug
+        ffmpeg = subprocess.Popen(" ".join(command), stderr=subprocess.PIPE, stdout = subprocess.PIPE )
+        stdout, stderr = ffmpeg.communicate()
+        i+=1

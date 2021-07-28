@@ -1,15 +1,23 @@
-uname: spotify # change to "spotify" to access Spotify's playlists
+uname: savageturd # change to "spotify" to access Spotify's playlists
+# There must be at least one
 playlists:
-  - "Today's Top Hits"
-  - "All Out 90s"
+  - "I'm gay"
+  - "Dolly"
+  - "Fisty"
+  - "Your Top Songs 2020"
+  - "Teen Beatz"
 pl_similarity: .9 # threshold for accepting a playlist name, enter 1 for perfect matches only
-show_playlists: true
+show_playlists: false
 # Be careful with the following settings
-download: false
-youtube_dl_path: 'C:\Users\youtube-dl.exe'
-output_path: 'C:\Users\me\music'
+download: true
+# default to local portable copy if on Windows, else change to your youtube-dl path
+youtube_dl_path: 'youtube-dl.exe'
+assert_music: false
+assert_music_string: "song"
+output_path: 'C:\Users\teeja\Music\Alice'
 playlist_folders: true
 number_tracks: true
 # NOTE: Convert to mp3 requires ffmpeg is installed on your system! Visit http://ffmpeg.org/ for more info
 # Windows only for now!
 convert_to_mp3 : true
+ffmpeg_install_location: 'ffmpeg.exe'
